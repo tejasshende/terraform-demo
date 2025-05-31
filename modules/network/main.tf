@@ -2,7 +2,6 @@
 resource "google_compute_network" "vpc" {
   name                    = "demo-vpc"
   auto_create_subnetworks = false
-  labels                  = var.labels
 }
 
 resource "google_compute_subnetwork" "subnet" {
