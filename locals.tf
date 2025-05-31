@@ -1,17 +1,9 @@
 
-output "vpc_name" {
-  description = "Name of the created VPC"
-  value       = module.network.vpc_name
-}
-
-output "subnet_name" {
-  description = "Name of the created subnet"
-  value       = module.network.subnet_name
-}
-
-output "gke_cluster_name" {
-  description = "Name of the created GKE cluster"
-  value       = module.gke.cluster_name
+locals {
+  common_labels = {
+    environment = "demo"
+    owner       = "terraform"
+  }
 }
 
 /*
