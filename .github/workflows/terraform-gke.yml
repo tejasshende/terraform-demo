@@ -1,14 +1,11 @@
-name: 🚀 Terraform GKE Deploy
+name: Terraform GKE Deploy 🚀
 
 on:
-#  push:
-#    branches:
-#      - main
   workflow_dispatch:
     inputs:
       action:
-        description: 'Terraform Action to Perform (apply or destroy)'
-        required: false
+        description: 'Choose Terraform action'
+        required: true
         default: 'apply'
         type: choice
         options:
@@ -18,14 +15,14 @@ on:
 jobs:
   plan:
     name: 🌍 Terraform Plan
-    if: ${{ github.event.inputs.action != 'destroy' || github.event_name == 'push' }}
+    if: github.event.inputs.action == 'apply'
     runs-on: ubuntu-latest
 
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-sa-key.json
 
     steps:
-      - name: 📦 Checkout code
+      - name: 🔄 Checkout code
         uses: actions/checkout@v3
 
       - name: 🧰 Set up Terraform
@@ -39,7 +36,7 @@ jobs:
       - name: ⚙️ Terraform Init with GCS Backend
         run: terraform init -reconfigure
 
-      - name: 🌍 Terraform Plan
+      - name: 📦 Terraform Plan
         run: terraform plan -var="gcp_sa_key_path=gcp-sa-key.json" -out=tfplan
 
       - name: 📤 Upload Plan File
@@ -49,18 +46,19 @@ jobs:
           name: tfplan
           path: tfplan
 
-  apply:
-    name: 💥 Terraform Apply or Destroy
-    needs: [plan]
+  apply_or_destroy:
+    name: 🚀 Terraform Apply or 💣 Destroy
+    if: ${{ always() && (github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy') }}
+    needs: [plan]  # This still works — will only run after plan if "apply"
     runs-on: ubuntu-latest
     environment:
       name: Production
 
-    steps:
-      - name: 👤 Actor Info
-        run: echo "Triggered by ${{ github.actor }}"
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-sa-key.json
 
-      - name: 📦 Checkout code
+    steps:
+      - name: 🔄 Checkout code
         uses: actions/checkout@v3
 
       - name: 🧰 Set up Terraform
@@ -71,26 +69,19 @@ jobs:
       - name: 🔐 Decode and write GCP credentials
         run: echo "${{ secrets.GCP_SA_KEY }}" | base64 -d > gcp-sa-key.json
 
-      - name: 📥 Download Plan File (skip if destroy)
-        if: ${{ github.event.inputs.action != 'destroy' }}
+      - name: 📥 Download Plan File (only for apply)
+        if: github.event.inputs.action == 'apply'
         uses: actions/download-artifact@v4
         with:
           name: tfplan
 
       - name: ⚙️ Terraform Init
         run: terraform init -reconfigure
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-sa-key.json
 
-      - name: 🛠️ Apply or 💣 Destroy
-        run: |
-          echo "Action chosen: ${{ github.event.inputs.action }}"
-          if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
-            echo "💣 Destroying all resources!"
-            terraform destroy -auto-approve -var="gcp_sa_key_path=gcp-sa-key.json"
-          else
-            echo "🛠️ Applying infrastructure changes..."
-            terraform apply -auto-approve tfplan
-          fi
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-sa-key.json
+      - name: 🚀 Terraform Apply
+        if: github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve tfplan
+
+      - name: 💣 Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve -var="gcp_sa_key_path=gcp-sa-key.json"
