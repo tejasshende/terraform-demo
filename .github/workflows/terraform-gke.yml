@@ -7,8 +7,8 @@ on:
       - main
 
 jobs:
-  terraform:
-    name: Terraform Plan & Apply
+  plan:
+    name: Terraform Plan
     runs-on: ubuntu-latest
 
     env:
@@ -30,8 +30,28 @@ jobs:
         run: terraform init -reconfigure
 
       - name: Terraform Plan
-        run: terraform plan -var="gcp_sa_key_path=gcp-sa-key.json"
+        run: terraform plan -var="gcp_sa_key_path=gcp-sa-key.json" -out=tfplan
+
+  apply:
+    name: Terraform Apply
+    needs: plan
+    runs-on: ubuntu-latest
+    environment:
+      name: Production   # Must match the environment you created
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Decode and write GCP credentials
+        run: echo "${{ secrets.GCP_SA_KEY }}" | base64 -d > gcp-sa-key.json
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -var="gcp_sa_key_path=gcp-sa-key.json"
+        run: terraform apply -auto-approve tfplan
