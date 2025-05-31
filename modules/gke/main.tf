@@ -32,8 +32,6 @@ resource "google_container_node_pool" "primary_nodes" {
   lifecycle {
     ignore_changes = [initial_node_count]
   }
-
-  labels = var.labels
 }
 
 
