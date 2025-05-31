@@ -13,7 +13,6 @@ resource "google_container_cluster" "primary" {
     channel = "REGULAR"
   }
 
-  labels = var.labels
 }
 
 resource "google_container_node_pool" "primary_nodes" {

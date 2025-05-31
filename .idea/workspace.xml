@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b80b1a91-4104-4f5a-8d73-90b0aae3e232" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/modules/network/main.tf" beforeDir="false" afterPath="$PROJECT_DIR$/modules/network/main.tf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gke/main.tf" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gke/main.tf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
