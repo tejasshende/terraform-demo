@@ -52,6 +52,8 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -reconfigure
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-sa-key.json
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
