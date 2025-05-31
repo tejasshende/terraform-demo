@@ -24,7 +24,7 @@ jobs:
           terraform_version: 1.6.6
 
       - name: Write GCP credentials to file
-        run: echo '${{ secrets.GCP_SA_KEY }}' > gcp-sa-key.json
+        run: echo '${{ secrets.GCP_SA_KEY }}' | base64 -d > gcp-sa-key.json
 
       - name: Terraform Init with GCS Backend
         run: terraform init -reconfigure
