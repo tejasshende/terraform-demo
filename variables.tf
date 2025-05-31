@@ -9,3 +9,9 @@ variable "region" {
   type        = string
   default     = "europe-west3"
 }
+
+variable "zone" {
+  description = "The GCP zone to deploy resources into"
+  type        = string
+}
+

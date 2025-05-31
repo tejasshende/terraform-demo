@@ -7,7 +7,15 @@ terraform {
     prefix = "gke-cluster/terraform.tfstate"
   }
 }
+/*
+">= 1.0.0" means Terraform version 1.0.0 or higher is required.
 
+You could also specify ranges like:
+
+"~> 1.3.0" (compatible with 1.3.x versions)
+
+">= 0.12, < 0.15" (any version between 0.12 inclusive and less than 0.15)
+*/
 
 provider "google" {
   credentials = file(var.gcp_sa_key_path)
