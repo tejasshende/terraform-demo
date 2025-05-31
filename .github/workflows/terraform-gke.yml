@@ -11,6 +11,8 @@ jobs:
   plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
+    outputs:
+      plan-exists: ${{ steps.plan.outcome == 'success' }}
 
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-sa-key.json
@@ -33,6 +35,13 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -var="gcp_sa_key_path=gcp-sa-key.json" -out=tfplan
 
+      - name: Upload Plan File
+        if: steps.plan.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: tfplan
+
   apply:
     name: Terraform Apply
     needs: plan
@@ -50,6 +59,11 @@ jobs:
 
       - name: Decode and write GCP credentials
         run: echo "${{ secrets.GCP_SA_KEY }}" | base64 -d > gcp-sa-key.json
+
+      - name: Download Plan File
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
 
       - name: Terraform Init
         run: terraform init -reconfigure
