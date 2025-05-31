@@ -1,39 +1,48 @@
-
-name: Terraform GKE Deploy
+name: 🚀 Terraform GKE Deploy
 
 on:
-  push:
-    branches:
-      - main
+#  push:
+#    branches:
+#      - main
   workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform Action to Perform (apply or destroy)'
+        required: false
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
 
 jobs:
   plan:
-    name: Terraform Plan
+    name: 🌍 Terraform Plan
+    if: ${{ github.event.inputs.action != 'destroy' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
 
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-sa-key.json
 
     steps:
-      - name: Checkout code
+      - name: 📦 Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Terraform
+      - name: 🧰 Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.6
 
-      - name: Write GCP credentials to file
+      - name: 🔐 Write GCP credentials to file
         run: echo '${{ secrets.GCP_SA_KEY }}' | base64 -d > gcp-sa-key.json
 
-      - name: Terraform Init with GCS Backend
+      - name: ⚙️ Terraform Init with GCS Backend
         run: terraform init -reconfigure
 
-      - name: Terraform Plan
+      - name: 🌍 Terraform Plan
         run: terraform plan -var="gcp_sa_key_path=gcp-sa-key.json" -out=tfplan
 
-      - name: Upload Plan File
+      - name: 📤 Upload Plan File
         if: success()
         uses: actions/upload-artifact@v4
         with:
@@ -41,34 +50,47 @@ jobs:
           path: tfplan
 
   apply:
-    name: Terraform Apply
-    needs: plan
+    name: 💥 Terraform Apply or Destroy
+    needs: [plan]
     runs-on: ubuntu-latest
     environment:
-      name: Production   # Must match the environment you created
+      name: Production
+
     steps:
-      - name: Checkout code
+      - name: 👤 Actor Info
+        run: echo "Triggered by ${{ github.actor }}"
+
+      - name: 📦 Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Terraform
+      - name: 🧰 Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.6
 
-      - name: Decode and write GCP credentials
+      - name: 🔐 Decode and write GCP credentials
         run: echo "${{ secrets.GCP_SA_KEY }}" | base64 -d > gcp-sa-key.json
 
-      - name: Download Plan File
+      - name: 📥 Download Plan File (skip if destroy)
+        if: ${{ github.event.inputs.action != 'destroy' }}
         uses: actions/download-artifact@v4
         with:
           name: tfplan
 
-      - name: Terraform Init
+      - name: ⚙️ Terraform Init
         run: terraform init -reconfigure
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-sa-key.json
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+      - name: 🛠️ Apply or 💣 Destroy
+        run: |
+          echo "Action chosen: ${{ github.event.inputs.action }}"
+          if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
+            echo "💣 Destroying all resources!"
+            terraform destroy -auto-approve -var="gcp_sa_key_path=gcp-sa-key.json"
+          else
+            echo "🛠️ Applying infrastructure changes..."
+            terraform apply -auto-approve tfplan
+          fi
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-sa-key.json
