@@ -1,5 +1,5 @@
 
-project_id      = "flawless-augury-461509-f7"
+project_id      = "devops-labs-461715"
 gcp_sa_key_path = "gcp-sa-key.json"
 zone            = "europe-west3-a"
 
