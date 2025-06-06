@@ -1,7 +1,7 @@
 
 project_id      = "devops-labs-461715"
 gcp_sa_key_path = "GCP_SA_KEY.json"
-zone            = "europe-west3-a"
+zone            = "us-east1-a"
 
 /*
 The terraform.tfvars file is used to set variable values that your Terraform configuration expects.
