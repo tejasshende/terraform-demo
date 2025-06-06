@@ -1,6 +1,6 @@
 
 project_id      = "devops-labs-461715"
-gcp_sa_key_path = "gcp-sa-key.json"
+gcp_sa_key_path = "GCP_SA_KEY.json"
 zone            = "europe-west3-a"
 
 /*
